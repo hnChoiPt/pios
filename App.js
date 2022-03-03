@@ -7,10 +7,6 @@
  */
 
 
-/**
- * 테스트 용도로 임시 추가해둔 함수가 많습니다.
- */
-
 import React from 'react';
 import type {Node} from 'react';
 import CameraRoll from './src/CameraRoll';
@@ -99,63 +95,12 @@ function loadAlbums(type = 'All', aTypes = 'All'){
   });
 };
 
-function checkPermission(callback){
-  IosPermissionHandler.checkPermission()
-  .then(r => {
-    console.log('check permission: %s', r);
-    if( r == "notDetermined"){
-      
-      PermissionIos.openSetting();
-    }
-    else if (r != "authorized"){
-      // createTwoButtonAlert("need authorization for PH", "NEEEEEEDDDDDDD", callback);
-      IosPermissionHandler.requestPermission();
-    }
-  })
-  .catch(err => {
-    console.log(err);
-    
-  });
-  return () => {};
-};
-
-function createTwoButtonAlert(title = "Title", msg = "MSG", func){
-Alert.alert(
-  title,
-  msg,
-  [
-    {
-      text: "Cancel",
-      onPress: () => {console.log("Cancel Pressed");
-                      if(func != null) {func();} },
-      style: "cancel"
-    },
-    { text: "OK", onPress: () => console.log("OK Pressed") }
-  ]
-)
-};
-
-function checkCallback() {
-  console.log("callback");
-}
-
 const App: () => Node = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   }; 
-
-  
-
-  // IosPermissionHandler.checkCameraPermission();
-  // IosPermissionHandler.requestPermission();
-  // IosPermissionHandler.openSetting();
-  // IosPermissionHandler.checkPhotoLibraryPermission();
-  
-  // loadPhotosMilsec();
-  // loadAlbums();
-  // checkPermission();
   
   return (
     <SafeAreaView style={backgroundStyle}>
@@ -181,16 +126,7 @@ const App: () => Node = () => {
                 {loadPhotosMilsec();}
             } />  
           </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+          
         </View>
       </ScrollView>
     </SafeAreaView>
