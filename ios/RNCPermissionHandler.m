@@ -50,6 +50,7 @@ RCT_ENUM_CONVERTER(RNCPHPermissionIosStatus,
 
 RCT_EXPORT_MODULE(IosPermissionHandler);
 
+//enum RNCPHPermissionIosStatus를 문자열로 바꾸는 함수
 - (NSString *)stringForStatus:(RNCPHPermissionIosStatus)status {
   switch (status) {
     case RNCPHPermissionIosStatusNotDetermined:
@@ -65,6 +66,7 @@ RCT_EXPORT_MODULE(IosPermissionHandler);
   }
 }
 
+//PHAuthorizationStatus 를 상단 enum RNCPHPermissionIosStatus에 해당하는 값으로 바꾸어 자바스크립트 단으로 넘겨주는 함수
 - (void)switchPHPermissionResolve:(PHAuthorizationStatus)status
                                   resolve:(RCTPromiseResolveBlock)resolve {
   switch (status) {
@@ -90,6 +92,7 @@ RCT_EXPORT_MODULE(IosPermissionHandler);
   }
 }
 
+//설정 창으로 이동하는 함수.
 RCT_EXPORT_METHOD(openSetting){
   //UI는 main queue에서만 업데이트 가능
   dispatch_async(dispatch_get_main_queue(), ^{
@@ -99,7 +102,7 @@ RCT_EXPORT_METHOD(openSetting){
   });
 }
 
-
+//퍼미션을 요청하고 해당 요청의 결과값을 리턴한다. reject 대응되어 있지 않음
 RCT_EXPORT_METHOD(requestPermission:
                   (RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject){
@@ -115,6 +118,7 @@ RCT_EXPORT_METHOD(requestPermission:
   }
 }
 
+//퍼미션을 체크하고 그에 대한 값을 리턴한다. reject 대응되어 있지 않음
 RCT_EXPORT_METHOD(checkPermission:
                   (RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject){
@@ -128,53 +132,24 @@ RCT_EXPORT_METHOD(checkPermission:
 }
 
 
+//카메라 퍼미션 작성 중
 RCT_EXPORT_METHOD(checkCameraPermission){
   AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
   
   switch (status){
     case AVAuthorizationStatusAuthorized:
-      // 동의함
+
       NSLog(@"Authorized");
     
       break;
       
     case AVAuthorizationStatusNotDetermined:
       NSLog(@"Not determined");
-      // 정의 안됨 (동의전)
-      //      [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
-      //        if (granted) {
-      //          //Granted access to mediaType
-      //          dispatch_async (dispatch_get_main_queue (), ^{
-      //          });
-      //        }
-      //      }];
-    
+      
       break;
       
     case AVAuthorizationStatusDenied:
       NSLog(@"denied");
-      // 동의안함
-      //      UIAlertController * alert=   [UIAlertController
-      //                                    alertControllerWithTitle:@"카메라 접근 요청"
-      //                                    message:@"카메라 접근 권한이 허용되지 않았습니다.\n'확인' 버튼을 누르시면 접근권한 설정 화면으로 이동합니다."
-      //                                    preferredStyle:UIAlertControllerStyleAlert];
-      //      UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"확인" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action)
-      //                                 {
-      //        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]
-      //                                           options:@{}
-      //                                 completionHandler:nil];
-      //      }];
-      //
-      //      UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"취소" style:UIAlertActionStyleDefault handler:nil];
-      //      [alert addAction:okAction];
-      //      [alert addAction:cancelAction];
-      //
-      //      UIViewController *rootView = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
-      //      while (rootView.presentedViewController) {
-      //        rootView = rootView.presentedViewController;
-      //      }
-      //      [rootView presentViewController:alert animated:YES completion:nil];
-      //
       break;
       
     case AVAuthorizationStatusRestricted:
