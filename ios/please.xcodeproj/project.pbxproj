@@ -102,7 +102,6 @@
 				BA2F8C1F27C27497002AE4F8 /* RNCAssetsLibraryRequestHandler.m */,
 				BA2F8C2327C274B7002AE4F8 /* RNCCameraRollManager.h */,
 				BA2F8C2127C274B2002AE4F8 /* RNCCameraRollManager.m */,
-				BA0A7D3627CC743F00DA0270 /* PhotoLibraryPermission */,
 				BA2F8C2627C5CDC2002AE4F8 /* RNCPermissionHandler.h */,
 				BA2F8C2427C5CDBB002AE4F8 /* RNCPermissionHandler.m */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -151,13 +150,6 @@
 				00E356EE1AD99517003FC87E /* pleaseTests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		BA0A7D3627CC743F00DA0270 /* PhotoLibraryPermission */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = PhotoLibraryPermission;
 			sourceTree = "<group>";
 		};
 		CD4B8E3808407AF932DB32D1 /* Pods */ = {
@@ -510,6 +502,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FG7JJG6S59;
 				ENABLE_BITCODE = NO;
 				EXCLUDED_ARCHS = arm64;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
@@ -538,6 +531,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FG7JJG6S59;
 				EXCLUDED_ARCHS = arm64;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				INFOPLIST_FILE = please/Info.plist;

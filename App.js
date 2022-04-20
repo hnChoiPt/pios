@@ -1,155 +1,161 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
 
+import React, { Component } from 'react';
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import React from 'react';
-import type {Node} from 'react';
 import CameraRoll from './src/CameraRoll';
 import PermissionIos from './src/PermissionIos';
-import { PERMISSION_IOS_STATUS, PERMISSION_IOS_TYPES } from './src/PermissionIosStatics';
-import IosPermissionHandler from './src/IosPermissionHandler';
+import { PERMISSION_IOS_STATUS, PERMISSION_IOS_TYPES } from './PermissionIosStatics';
 
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-  FlatList,
-  TouchableOpacity,
-  PermissionsAndroid,
-  Image,
-  Button,
-  Alert,
-  Platform
-} from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-
-const Section = ({children, title}): Node => {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-};
-
-function loadPhotosMilsec(request = 20, timeStamp = 0, type = 'All', flags = ['playableDuration']){
-  CameraRoll.getPhotos({
-    first: request,
-    toTime: timeStamp ? (timeStamp - 1) * 1000 : 0,
-    assetType: type,
-    include: flags,
-    groupTypes: 'SmartAlbum',
-  })
-    .then(r => {
-      console.log(r);
-    })
-    .catch(err => {
-      console.log(err);
-    });
-};
-
-function loadAlbums(type = 'All', aTypes = 'All'){
-  CameraRoll.getAlbums({
-    assetType: type,
-    albumType: aTypes,
-  })
-  .then(r => {
-    console.log(r);
-  })
-  .catch(err => {
-    console.log(err);
-  });
-};
-
-const App: () => Node = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  }; 
-  
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-
-          <Section>
-            <Button title='update permission'
-            onPress={()=>{
-              PermissionIos.updatePermission();
-            }}/>
-          </Section>
-          <Section>
-            <Button title={"photo load"} 
-              onPress={()=>
-                {loadPhotosMilsec();}
-            } />  
-          </Section>
-          
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  button: {
+    backgroundColor: 'blue',
+    marginBottom: 10,
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
+  text: {
+    color: 'white',
+    fontSize: 20,
+    textAlign: 'center',
   },
 });
 
-export default App;
+export default class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      image: null,
+      images: null,
+    };
+  }
+
+  //이런 식으로 쪼개서 퍼미션을 체크해도 되고
+  //PermissionIos.updatePermission(); 을 그대로 불러서 써도 된다
+  //퍼미션 함수 제외 나머지는 퍼미션 예외처리 안 함
+  checkPermission(isCustomized = false){
+    if(isCustomized) {
+      PermissionIos.checkPermission()
+      .then(r => {
+        console.log('check permission: %s', r);
+        if( r == "notDetermined"){
+          PermissionIos.openSetting();
+        }
+        else if (r != "authorized"){
+          PermissionIos.requestPermission();
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
+    } else {
+      PermissionIos.updatePermission();
+    }
+  };
+
+  save(){
+    if(this.state.image == null){
+      console.log('image is null');
+      return;
+    }
+
+    CameraRoll.saveImage(this.state.image.uri)
+    .catch(err => {
+      console.log(err);
+    });
+  }
+
+  compress(){
+    if(this.state.image == null){
+      console.log('image is null');
+      return;
+    }
+
+//아직 resolve 안 됨. 질문 예정
+    CameraRoll.compressImage(this.state.image.uri, 50, 50, 0.01)
+    .catch(err => {
+      console.log(err);
+    })
+  }
+
+  //cameraroll에서 이미지 불러오는 건 공식페이지 샘플과 동일, 다만 smart album이 추가되어 있음.
+  //관련하여 안내 작성 예정
+  //현재는 전체앨범에서 0번째 인덱스의 이미지를 가져옴
+  getImage(){
+    CameraRoll.getPhotos({
+      first: 3,
+      toTime: 0,
+      assetType: 'Photos',
+      include: ['imageSize', 'filename', 'filesize'],
+      groupTypes: 'All',
+    })
+      .then(r => {
+        this.setState({
+              image: {
+                uri: r.edges[0].node.image.uri,
+                width: r.edges[0].node.image.width,
+                height: r.edges[0].node.image.height,
+              },
+              images: null,
+            });
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }
+
+  scaledHeight(oldW, oldH, newW) {
+    return (oldH / oldW) * newW;
+  }
+
+  renderImage(image) {
+    return (
+      <Image
+        style={{ width: 300, height: 300, resizeMode: 'contain' }}
+        source={image}
+      />
+    );
+  }
+
+  render() {
+    return (
+      <View style={styles.container}>
+        <ScrollView>
+          {this.state.image ? this.renderImage(this.state.image) : null}
+          {this.state.images
+            ? this.state.images.map((i) => (
+                <View key={i.uri}>{this.renderImage(i)}</View>
+              ))
+            : null}
+        </ScrollView>
+
+        <TouchableOpacity
+          onPress={() => this.checkPermission(false)}
+          style={styles.button}>
+          <Text style={styles.text}>Ask permission / Check Permission</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => this.getImage()}
+          style={styles.button}>
+          <Text style={styles.text}>getImage</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => this.save()}
+          style={styles.button}>
+          <Text style={styles.text}>save selected Image</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => this.compress()}
+          style={styles.button}>
+          <Text style={styles.text}>compress selected Image</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+}

@@ -212,6 +212,16 @@ class CameraRoll {
     return RNCCameraRoll.saveToCameraRoll(tag, { type, album });
   }
 
+  static saveImage(uri: string): Promise<void>{
+    return RNCCameraRoll.saveImage(uri);
+  }
+
+  static compressImage(uri: string, 
+    compressWidth: number,  compressHeight: number, compressionQuality: number): Promise<object>{
+
+    return RNCCameraRoll.compressImage(uri, compressWidth, compressHeight, compressionQuality);
+  }
+
   static saveToCameraRoll(
     tag: string,
     type?: 'photo' | 'video' | 'auto',

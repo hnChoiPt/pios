@@ -255,7 +255,7 @@ RCT_EXPORT_METHOD(getAlbums:(NSDictionary *)params
                                                         options:options];
     [assets enumerateObjectsUsingBlock:convertAsset];
   }
-//#MARK: 왜 여기만 reject가 없는지 모를노릇
+
   resolve(result);
 }
 
@@ -338,7 +338,9 @@ RCT_EXPORT_METHOD(getPhotos:(NSDictionary *)params
       NSString *_Nullable originalFilename = NULL;
       PHAssetResource *_Nullable resource = NULL;
       NSNumber* fileSize = [NSNumber numberWithInt:0];
+      NSString* path = @"path";
       
+      //#MARK: - getphoto
       if (includeFilename || includeFileSize || [mimeTypes count] > 0) {
         // Get underlying resources of an asset - this includes files as well as details about edited PHAssets
         // This is required for the filename and mimeType filtering
@@ -346,6 +348,7 @@ RCT_EXPORT_METHOD(getPhotos:(NSDictionary *)params
         resource = [assetResources firstObject];
         originalFilename = resource.originalFilename;
         fileSize = [resource valueForKey:@"fileSize"];
+//        path = [resource valueForKey:@"fileURL"];
       }
       
       // WARNING: If you add any code to `collectAsset` that may skip adding an
@@ -411,7 +414,8 @@ RCT_EXPORT_METHOD(getPhotos:(NSDictionary *)params
               @"fileSize": (includeFileSize ? fileSize : [NSNull null]),
               @"playableDuration": (includePlayableDuration && asset.mediaType != PHAssetMediaTypeImage
                                     ? @([asset duration]) // fractional seconds
-                                    : [NSNull null])
+                                    : [NSNull null]),
+              @"path": path
           },
           @"timestamp": @(asset.creationDate.timeIntervalSince1970),
           @"location": (includeLocation && loc ? @{
@@ -495,6 +499,120 @@ RCT_EXPORT_METHOD(deletePhotos:(NSArray<NSString *>*)assets
   }
   ];
 }
+
+//#MARK: @RCT savaeImage
+/// 이미지를 저장하는 함수. 성공시 nil, 실패시 error를 리턴한다.
+///함수 image: didFinishSavingWithError: contextInfo: 에서 resolve/reject를 처리함
+RCT_EXPORT_METHOD(saveImage:(NSString*) uri
+                  resolver:(RCTPromiseResolveBlock) resolve
+                  rejecter:(RCTPromiseRejectBlock) reject){
+  //프로퍼티에 저장하지 않는 방법 강구
+  self.resolve = resolve;
+  self.reject = reject;
+  //[native] Illegal callback invocation from native module. This callback type only permits a single invocation from native code.
+  PHFetchResult<PHAsset *> *asset = [PHAsset fetchAssetsWithLocalIdentifiers:@[[uri substringFromIndex:5]] options:nil];
+  
+  if(asset == nil || asset.count == 0) {
+    self.reject(@"Image fetch result is nil.", nil, nil);
+  } else if(asset.firstObject == nil) {
+    self.reject(@"Image is nil", nil, nil);
+  }
+  
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    [[PHImageManager defaultManager] requestImageForAsset:asset.firstObject
+                                                     targetSize:CGSizeMake(asset.firstObject.pixelWidth, asset.firstObject.pixelHeight)
+                                                    contentMode:PHImageContentModeDefault
+                                                        options:nil
+                                                  resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+            
+            if(result == nil){
+              self.reject(@"image result is nil", nil, nil);
+            }
+            
+            UIImageWriteToSavedPhotosAlbum (result, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
+    }];
+  });
+}
+
+- (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
+    if (error) {
+      self.reject(@"Cannot save image", [error localizedDescription], error);
+    } else {
+        self.resolve(nil);
+    }
+}
+
+//#MARK: - RCT compressImage
+///options로 인자 받는 방식으로 변경 예정. 이미지를 정해진 크기로 변환한다.
+///quality는 1.0~0.0
+RCT_EXPORT_METHOD(compressImage:(NSString*)uri
+                  compressWidth:(NSNumber*)width
+                  compressHeight:(NSNumber*)height
+                  compressionQuality:(NSNumber*)quality
+                  resolver:(RCTPromiseResolveBlock) resolve
+                  rejecter:(RCTPromiseRejectBlock) reject){
+  //프로퍼티에 저장하지 않는 방법 강구
+  self.resolve = resolve;
+  self.reject = reject;
+  
+  //camera roll에서 반환하는 uri는 ph:// + (localIdentifier) 라서 5번째 인덱스부터
+  PHFetchResult<PHAsset *> *asset = [PHAsset fetchAssetsWithLocalIdentifiers:@[[uri substringFromIndex:5]] options:nil];
+  
+  if(asset == nil || asset.count == 0) {
+    self.reject(@"Image fetch result is nil.", nil, nil);
+  } else if(asset.firstObject == nil) {
+    self.reject(@"Image is nil", nil, nil);
+  }
+  
+  CGFloat oldWidth = asset.firstObject.pixelWidth;
+  CGFloat oldHeight = asset.firstObject.pixelHeight;
+  
+  CGFloat newWidth = width.floatValue;
+  CGFloat newHeight = height.floatValue;
+  
+  if (newWidth < newHeight) {
+      newWidth = newWidth;
+      newHeight = (oldHeight / oldWidth) * newWidth;
+  } else {
+      newHeight = newHeight;
+      newWidth = (oldWidth / oldHeight) * newHeight;
+  }
+  
+  [[PHImageManager defaultManager] requestImageForAsset:asset.firstObject
+                                             targetSize:CGSizeMake(newWidth, newHeight)
+                                            contentMode:PHImageContentModeDefault
+                                                options:nil
+                                          resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+    
+    if(result == nil){
+      self.reject(@"image result is nil", nil, nil);
+    }
+  
+    //압축된 데이터
+    NSData *imageData = UIImageJPEGRepresentation(result, quality.floatValue);
+    
+    //#MARK: - return 값
+    //image crop picker는 임시 폴더에 저장하여 해당 uri를 저장하는 식. resolve하여 전달하는 값은 하단 함수(createAttachmentResponse: filePath: ... / 함수는 기존 image crop picker 함수 내용 수정)
+    //압축되는 건 확인
+    }];
+}
+
++ (NSDictionary*) createAttachmentResponse:(NSString*)filePath withExif:(NSDictionary*) exif withSourceURL:(NSString*)sourceURL withLocalIdentifier:(NSString*)localIdentifier withFilename:(NSString*)filename withWidth:(NSNumber*)width withHeight:(NSNumber*)height withMime:(NSString*)mime withSize:(NSNumber*)size withDuration:(NSNumber*)duration withData:(NSString*)data withCreationDate:(NSDate*)creationDate withModificationDate:(NSDate*)modificationDate {
+    return @{
+        @"uri": (filePath && ![filePath isEqualToString:(@"")]) ? filePath : [NSNull null],
+        @"localIdentifier": (localIdentifier) ? localIdentifier : [NSNull null],
+        @"filename": (filename) ? filename : [NSNull null],
+        @"width": width,
+        @"height": height,
+        @"mime": mime,
+        @"size": size,
+        @"data": (data) ? data : [NSNull null],
+        @"exif": (exif) ? exif : [NSNull null],
+        @"creationDate": (creationDate) ? [NSString stringWithFormat:@"%.0f", [creationDate timeIntervalSince1970]] : [NSNull null],
+        @"modificationDate": (modificationDate) ? [NSString stringWithFormat:@"%.0f", [modificationDate timeIntervalSince1970]] : [NSNull null]
+    };
+}
+
 
 //#MARK: checkPhotoLibraryConfig
 static void checkPhotoLibraryConfig()
