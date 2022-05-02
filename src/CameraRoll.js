@@ -213,11 +213,12 @@ class CameraRoll {
   }
 
   static saveImage(uri: string): Promise<void>{
+    console.log("saveImage React Native");
     return RNCCameraRoll.saveImage(uri);
   }
 
   static compressImage(uri: string, 
-    compressWidth: number,  compressHeight: number, compressionQuality: number): Promise<object>{
+    compressWidth: number,  compressHeight: number, compressionQuality: number): Promise<string>{
 
     return RNCCameraRoll.compressImage(uri, compressWidth, compressHeight, compressionQuality);
   }
@@ -272,6 +273,10 @@ class CameraRoll {
     }
 
     return promise;
+  }
+
+  static clean(){
+    return RNCCameraRoll.clean();
   }
 }
 

@@ -74,8 +74,19 @@ export default class App extends Component {
       return;
     }
 
-//아직 resolve 안 됨. 질문 예정
+    console.log('compress');
     CameraRoll.compressImage(this.state.image.uri, 50, 50, 0.01)
+    .then(r => {
+      console.log(r);
+      this.setState({
+        image: {
+          uri: r,
+          width: 10,
+          height: 500,
+        },
+        images: null,
+      });
+    })
     .catch(err => {
       console.log(err);
     })
@@ -104,6 +115,16 @@ export default class App extends Component {
       })
       .catch(err => {
         console.log(err);
+      });
+  }
+
+  cleanupImages() {
+    CameraRoll.clean()
+      .then(() => {
+        console.log('removed tmp images from tmp directory');
+      })
+      .catch((e) => {
+        alert(e);
       });
   }
 
@@ -145,7 +166,22 @@ export default class App extends Component {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => this.save()}
+          onPress={() => {
+            console.log("image uri::::");
+            console.log(this.state.image.uri);
+          }}
+          style={styles.button}>
+          <Text style={styles.text}>console log uri</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            CameraRoll.saveImage(this.state.image.uri)
+            .catch(err => {
+              console.log(err);
+            });
+            // CameraRoll.save('ph://AAA814CD-27E9-4D8D-A57E-22DE2567723C/L0/001');
+          }}
           style={styles.button}>
           <Text style={styles.text}>save selected Image</Text>
         </TouchableOpacity>
@@ -154,6 +190,12 @@ export default class App extends Component {
           onPress={() => this.compress()}
           style={styles.button}>
           <Text style={styles.text}>compress selected Image</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => this.cleanupImages()}
+          style={styles.button}>
+          <Text style={styles.text}>clean temp images</Text>
         </TouchableOpacity>
       </View>
     );
