@@ -522,11 +522,19 @@ RCT_EXPORT_METHOD(saveImage:(NSString*) uri
   __block NSData *imageData = nil;
   
   void (^save)(void) = ^void() {
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+//      NSLog(@"들어왔당 들어왔어 루프 돌리기");
+//      int i;
+//      for(i = 0; i < 100000; ++i) {
+//        NSLog(@"%d", i);
+//      }
+//      NSLog(@"루프끝");
       if ([PHAssetCreationRequest class]) {
           [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
               [[PHAssetCreationRequest creationRequestForAsset] addResourceWithType:PHAssetResourceTypePhoto
                                                                                data:imageData options:nil];
           } completionHandler:^(BOOL success, NSError * _Nullable error) {
+            NSLog(@"completionHandler");
               if (success) {
                 self.resolve(nil);
               } else {
@@ -547,9 +555,10 @@ RCT_EXPORT_METHOD(saveImage:(NSString*) uri
             [[NSFileManager defaultManager] removeItemAtURL:[NSURL URLWithString:savedPath] error:nil];
         }];
       }
+    });
   }; //end of block function save()
   
-  dispatch_sync(dispatch_get_main_queue(), ^{
+//  dispatch_sync(dispatch_get_main_queue(), ^{
     if([uri containsString:@"ph://"]) //이게 최신 방법
     {
       PHFetchResult<PHAsset *> *asset = [PHAsset fetchAssetsWithLocalIdentifiers:@[[uri substringFromIndex:5]] options:nil];
@@ -584,7 +593,7 @@ RCT_EXPORT_METHOD(saveImage:(NSString*) uri
         }
       }];
     }
-  });
+//  });
   
 }
 

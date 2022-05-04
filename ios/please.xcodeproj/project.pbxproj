@@ -95,6 +95,7 @@
 		13B07FAE1A68108700A75B9A /* please */ = {
 			isa = PBXGroup;
 			children = (
+				BA7AE8B9281FDF9E00E71072 /* TOCrop */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -150,6 +151,13 @@
 				00E356EE1AD99517003FC87E /* pleaseTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		BA7AE8B9281FDF9E00E71072 /* TOCrop */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = TOCrop;
 			sourceTree = "<group>";
 		};
 		CD4B8E3808407AF932DB32D1 /* Pods */ = {

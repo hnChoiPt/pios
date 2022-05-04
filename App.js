@@ -96,6 +96,7 @@ export default class App extends Component {
   //관련하여 안내 작성 예정
   //현재는 전체앨범에서 0번째 인덱스의 이미지를 가져옴
   getImage(){
+    console.log("get image");
     CameraRoll.getPhotos({
       first: 3,
       toTime: 0,
@@ -176,10 +177,33 @@ export default class App extends Component {
 
         <TouchableOpacity
           onPress={() => {
+            console.log("saveImage 부름");
             CameraRoll.saveImage(this.state.image.uri)
             .catch(err => {
               console.log(err);
             });
+            
+            console.log("get image");
+            CameraRoll.getPhotos({
+              first: 10,
+              toTime: 0,
+              assetType: 'Photos',
+              include: ['imageSize', 'filename', 'filesize'],
+              groupTypes: 'All',
+            })
+              .then(r => {
+                this.setState({
+                      image: {
+                        uri: r.edges[9].node.image.uri,
+                        width: r.edges[9].node.image.width,
+                        height: r.edges[9].node.image.height,
+                      },
+                      images: null,
+                    });
+              })
+              .catch(err => {
+                console.log(err);
+              });
             // CameraRoll.save('ph://AAA814CD-27E9-4D8D-A57E-22DE2567723C/L0/001');
           }}
           style={styles.button}>
